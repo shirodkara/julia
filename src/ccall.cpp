@@ -881,7 +881,6 @@ static jl_cgval_t emit_llvmcall(jl_codectx_t &ctx, jl_value_t **args, size_t nar
     }
     if (at == NULL)
         at = try_eval(ctx, args[3], "error statically evaluating llvmcall argument tuple");
-    int i = 1;
     if (jl_is_tuple(ir)) {
         // if the IR is a tuple, we expect (declarations, ir)
         if (jl_nfields(ir) != 2)
@@ -937,10 +936,11 @@ static jl_cgval_t emit_llvmcall(jl_codectx_t &ctx, jl_value_t **args, size_t nar
     Type *rettype = julia_type_to_llvm(ctx, rtt, &retboxed);
     if (isString) {
         // Make sure to find a unique name
+        static int llvmcallUnique = 1;
         std::string ir_name;
         while (true) {
             std::stringstream name;
-            name << (ctx.f->getName().str()) << "u" << i++;
+            name << (ctx.f->getName().str()) << "u" << llvmcallUnique++;
             ir_name = name.str();
             if (jl_Module->getFunction(ir_name) == NULL)
                 break;
